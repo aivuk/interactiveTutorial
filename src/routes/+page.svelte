@@ -4,6 +4,7 @@
   import 'prismjs/themes/prism-twilight.css'
 
   function updateCode(i) {
+    currentOption = i
     let option = tutorial[currentTopic]['options'][i]
     if ('vars' in option) {
       source = option['code'](option['vars'])
@@ -11,6 +12,14 @@
       source = option['code']
     }
   }
+
+  function updateValue(evt, option, v) {
+    let voption = tutorial[currentTopic]['options'][option]
+    voption['vars'][v]['value'] = evt.target.value
+    source = voption['code'](voption['vars'])
+  }
+
+  let state = ['#1', 0]
 
   let tutorial = {
     '#1': {
@@ -36,9 +45,9 @@
     from frictionless import portals, Catalog
 
     ckan_control = portals.CkanControl()
-    catalog = Catalog(` + v[0]['value'] + `, control=ckan_control)
+    catalog = Catalog("` + v[0]['value'] + `", control=ckan_control)
             `,
-          'vars':[{'value': 'CKAN_DATASET_URL', 'label': 'CKAN instance URL'}]
+          'vars':[{'value': '', 'placeholder': 'CKAN_DATASET_URL', 'label': 'CKAN instance URL'}]
         }
       ],
       'next': '#2'
@@ -48,6 +57,7 @@
   } 
 
   let currentTopic = '#1'  
+  let currentOption = 0
   let source = tutorial[currentTopic]['code']
 
 </script>
@@ -59,6 +69,14 @@
 {#each tutorial[currentTopic]['options'] as option,i }
 <p on:click="{() => updateCode(i)}">
 {option['label']}
+  {#if currentOption == i}
+    {#if 'vars' in option}
+      {#each option['vars'] as v, vi}
+      <p>
+      {v['label']}: <input type="text" placeholder={v['placeholder']} value={v['value']} on:input={(evt) => updateValue(evt, i, vi)}>
+      {/each}
+    {/if}
+  {/if}
 </p>
 {/each}
   
