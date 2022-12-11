@@ -19,11 +19,20 @@
     source = voption['code'](voption['vars'])
   }
 
+  function getValue(variable) {
+    if (variable['value'] == '') {
+      return variable['placeholder']
+    } else {
+      return variable['value']
+    }
+  }
+
   let state = ['#1', 0]
 
   let tutorial = {
     '#1': {
       'title': 'Are you going to download one or more CKAN datasets?',
+      'description': 'First thing to do, choose if you know already if you are going to download multiple datasets from a CKAN instance or just one individual package.',
       'code': `
     from frictionless import portals
 
@@ -31,23 +40,24 @@
         `,
       'options': [
         {
-          'label': 'just one package',
-          'code': `
+          'label': 'You want to import just one package.',
+          'code': (v) => `
     from frictionless import portals, Package
 
     ckan_control = portals.CkanControl()
-    package = Package(CKAN_DATASET_URL, control=ckan_control)
-            `
+    package = Package("` + getValue(v[0]) + `", control=ckan_control)
+            `,
+          'vars':[{'value': '', 'placeholder': 'CKAN_DATASET_URL', 'label': 'CKAN dataset URL'}]
         },
         {
-          'label': 'more than one package',
+          'label': 'You want to import more than one package.',
           'code': (v) => `
     from frictionless import portals, Catalog
 
     ckan_control = portals.CkanControl()
-    catalog = Catalog("` + v[0]['value'] + `", control=ckan_control)
+    catalog = Catalog("` + getValue(v[0]) + `", control=ckan_control)
             `,
-          'vars':[{'value': '', 'placeholder': 'CKAN_DATASET_URL', 'label': 'CKAN instance URL'}]
+          'vars':[{'value': '', 'placeholder': 'CKAN_INSTANCE_URL', 'label': 'CKAN instance URL'}]
         }
       ],
       'next': '#2'
@@ -60,29 +70,33 @@
   let currentOption = 0
   let source = tutorial[currentTopic]['code']
 
+  updateCode(currentOption)
 </script>
 
-<div class="flex place-content-center">
-  <div class="grid grid-cols-2 w-full">
-    <div class="pt-10 pl-2 col-span-1 pr-10">
-      <h2>{tutorial[currentTopic]['title'] }</h2>
-{#each tutorial[currentTopic]['options'] as option,i }
-<p on:click="{() => updateCode(i)}">
-{option['label']}
-  {#if currentOption == i}
-    {#if 'vars' in option}
-      {#each option['vars'] as v, vi}
-      <p>
-      {v['label']}: <input type="text" placeholder={v['placeholder']} value={v['value']} on:input={(evt) => updateValue(evt, i, vi)}>
+  <div class="grid md:grid-cols-2 grid-rows-2 w-full h-full">
+    <div class="pt-10 pl-2 md:col-span-1 pr-10 h-1/2">
+      <h2 class="text-lg">{tutorial[currentTopic]['title'] }</h2>
+      <div class="p-2">
+      {tutorial[currentTopic]['description']}
+      </div>
+      {#each tutorial[currentTopic]['options'] as option,i }
+        <div on:click="{() => updateCode(i)}" class="{ (currentOption == i)? 'border border-2 rounded rounded-2 p-2 bg-amber-300':'p-2 hover:border hover:border-2 hover:rounded hover:rounded-2 p-2 hover:bg-sky-100' }" > 
+        {option['label']}
+          {#if currentOption == i}
+            {#if 'vars' in option}
+              <div class="pl-4">
+                {#each option['vars'] as v, vi}
+                <div>
+                <b>{v['label']}:</b> <input type="text" class="w-full border border-2" placeholder={v['placeholder']} value={v['value']} on:input={(evt) => updateValue(evt, i, vi)}>
+                </div>
+                {/each}
+              </div>
+            {/if}
+          {/if}
+        </div>
       {/each}
-    {/if}
-  {/if}
-</p>
-{/each}
-  
-    
     </div>
-    <div class="col-span-1 pr-2">
+    <div class="md:col-span-1 pr-2 h-1/2">
     
     <Prism 
       class="w-full"
@@ -93,4 +107,3 @@
       />
     </div>
   </div>
-</div>
