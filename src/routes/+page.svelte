@@ -54,8 +54,8 @@
           'code': (v) => `
     from frictionless import portals, Catalog
 
-    ckan_control = portals.CkanControl()
-    catalog = Catalog("` + getValue(v[0]) + `", control=ckan_control)
+    ckan_control = portals.CkanControl(baseurl="` + getValue(v[0]) + `")
+    catalog = Catalog(control=ckan_control)
             `,
           'vars':[{'value': '', 'placeholder': 'CKAN_INSTANCE_URL', 'label': 'CKAN instance URL'}]
         }
@@ -73,14 +73,15 @@
   updateCode(currentOption)
 </script>
 
-  <div class="grid md:grid-cols-2 grid-rows-2 w-full h-full">
-    <div class="pt-10 pl-2 md:col-span-1 pr-10 h-1/2">
+  <div class="grid md:grid-cols-2 p-10 grid-rows-2 w-full h-full">
+    <div class="pt-2 pl-2 md:col-span-1 pr-10 h-1/2">
+      <h1 class="text-2xl mb-5">Frictionless CKAN Data Portal</h1>
       <h2 class="text-lg">{tutorial[currentTopic]['title'] }</h2>
       <div class="p-2">
       {tutorial[currentTopic]['description']}
       </div>
       {#each tutorial[currentTopic]['options'] as option,i }
-        <div on:click="{() => updateCode(i)}" class="{ (currentOption == i)? 'border border-2 rounded rounded-2 p-2 bg-amber-300':'p-2 hover:border hover:border-2 hover:rounded hover:rounded-2 p-2 hover:bg-sky-100' }" > 
+        <div on:click="{() => updateCode(i)}" class="{ (currentOption == i)? 'ring ring-2 ring-inset rounded rounded-2 p-2 bg-amber-300':'p-2 hover:ring hover:ring-2 hover:ring-inset hover:rounded p-2 hover:bg-sky-100' }" > 
         {option['label']}
           {#if currentOption == i}
             {#if 'vars' in option}
