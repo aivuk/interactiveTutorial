@@ -15,15 +15,27 @@
 
   function updateValue(evt, option, v) {
     let voption = tutorial[currentTopic]['options'][option]
-    voption['vars'][v]['value'] = evt.target.value
+    if ('type' in voption['vars'][v]) {
+      if (voption['vars'][v]['type'] == 'check') {
+        voption['vars'][v]['state'] = evt.target.checked
+      }
+    } else {
+      voption['vars'][v]['value'] = evt.target.value
+    }
     source = voption['code'](voption['vars'])
   }
 
   function getValue(variable) {
-    if (variable['value'] == '') {
-      return variable['placeholder']
+    if ('type' in variable) {
+      if (variable['type'] == 'check') {
+        return variable['state']?variable['value']:''
+      }
     } else {
-      return variable['value']
+      if (variable['value'] == '') {
+        return variable['placeholder']
+      } else {
+        return variable['value']
+      }
     }
   }
 
@@ -54,10 +66,13 @@
           'code': (v) => `
     from frictionless import portals, Catalog
 
-    ckan_control = portals.CkanControl(baseurl="` + getValue(v[0]) + `")
+    ckan_control = portals.CkanControl(baseurl="` + getValue(v[0]) + '"' + getValue(v[1]) + `)
     catalog = Catalog(control=ckan_control)
             `,
-          'vars':[{'value': '', 'placeholder': 'CKAN_INSTANCE_URL', 'label': 'CKAN instance URL'}]
+          'vars':[
+            {'value': '', 'placeholder': 'CKAN_INSTANCE_URL', 'label': 'CKAN instance URL'},
+            {'type': 'check', 'value': ',\n                     ignore_package_errors=True', 'state': false, 'label': 'Do you want to ignore package errors?'}
+          ]
         }
       ],
       'next': '#2'
@@ -87,9 +102,15 @@
             {#if 'vars' in option}
               <div class="pl-4">
                 {#each option['vars'] as v, vi}
+                  {#if !('type' in v)}
                 <div>
                 <b>{v['label']}:</b> <input type="text" class="w-full border border-2" placeholder={v['placeholder']} value={v['value']} on:input={(evt) => updateValue(evt, i, vi)}>
                 </div>
+                  {:else}
+                 <div>
+                 <b>{v['label']}:</b> <input type="checkbox" bind:checked={v['state']} on:change={(evt) => updateValue(evt, i, vi)}>
+                </div>
+                  {/if}
                 {/each}
               </div>
             {/if}
@@ -104,7 +125,6 @@
       language={'python'}
       source={source}
       showCopyButton
-      showLineNumbers
       />
     </div>
   </div>
