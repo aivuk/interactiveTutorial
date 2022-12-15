@@ -2,9 +2,22 @@
   import Prism from '@magidoc/plugin-svelte-prismjs'
   import 'prismjs/components/prism-python'
   import 'prismjs/themes/prism-twilight.css'
+  import replaceStateWithQuery from '../lib/replaceWithQuery.ts'
+  import { onMount } from 'svelte'
+
+  onMount(() => {
+    let params = new URLSearchParams(document.location.search);
+    console.log(params)
+    state['option'] = params.get('option')?params.get('option'):0
+    state['topic'] = params.get('topic')?params.get('topic'):'ckan-portal'
+    console.log(state)
+    updateCode(state['option'])
+    loaded = true
+  })
 
   function updateCode(i) {
     currentOption = i
+    state['option'] = i
     let option = tutorial[currentTopic]['options'][i]
     if ('vars' in option) {
       source = option['code'](option['vars'])
@@ -39,10 +52,8 @@
     }
   }
 
-  let state = ['#1', 0]
-
   let tutorial = {
-    '#1': {
+    'ckan-portal': {
       'title': 'Are you going to download one or more CKAN datasets?',
       'description': 'First thing to do, choose if you know already if you are going to download multiple datasets from a CKAN instance or just one individual package.',
       'code': `
@@ -77,13 +88,20 @@
       ],
       'next': '#2'
     },
-    '#2': {
+    '2': {
     }
   } 
 
-  let currentTopic = '#1'  
+  let currentTopic = 'ckan-portal'  
   let currentOption = 0
   let source = tutorial[currentTopic]['code']
+  let state = { topic: currentTopic, option: currentOption }
+  let loaded = false
+
+  $: {
+    if (loaded)
+      replaceStateWithQuery(state)
+  }
 
   updateCode(currentOption)
 </script>
